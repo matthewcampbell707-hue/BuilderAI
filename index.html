@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BuilderAI</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#0a0a0f;color:#f0f0f8;min-height:100vh}
+.app{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+.sidebar{background:#12121a;border-right:1px solid #ffffff14;display:flex;flex-direction:column}
+.logo{padding:20px 18px 16px;border-bottom:1px solid #ffffff14}
+.logo-mark{font-size:18px;font-weight:700}
+.logo-mark span{color:#7c6ef7}
+.logo-sub{font-size:10px;color:#5a5a7a;letter-spacing:.12em;text-transform:uppercase;margin-top:2px}
+.nav{padding:12px 8px;flex:1}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:13px;color:#9090b0;transition:all .15s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:#1a1a26;color:#f0f0f8}
+.nav-item.active{background:#534AB720;color:#a594ff;border:1px solid #7c6ef730}
+.profile-box{padding:12px 14px;border-top:1px solid #ffffff14}
+.avatar{width:32px;height:32px;border-radius:50%;background:#534AB7;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+.badge-prem{font-size:9px;padding:2px 7px;border-radius:20px;background:#534AB720;color:#a594ff;border:1px solid #7c6ef740;text-transform:uppercase;font-weight:500}
+.badge-unlim{font-size:9px;padding:2px 7px;border-radius:20px;background:#1D9E7520;color:#5DCAA5;border:1px solid #1D9E7540;text-transform:uppercase;font-weight:500}
+.main{display:flex;flex-direction:column}
+.topbar{padding:16px 24px;border-bottom:1px solid #ffffff14;display:flex;align-items:center;justify-content:space-between;background:#12121a}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;font-size:13px;cursor:pointer;border:none;font-family:system-ui,sans-serif;transition:all .15s}
+.btn-primary{background:#534AB7;color:#fff}
+.btn-primary:hover{background:#7c6ef7}
+.btn-ghost{background:transparent;color:#9090b0;border:1px solid #ffffff22}
+.btn-ghost:hover{color:#f0f0f8}
+.content{padding:24px;flex:1;overflow-y:auto}
+.panel{display:none}.panel.active{display:block}
+.unlim-banner{background:#1D9E7518;border:1px solid #1D9E7540;border-radius:10px;padding:12px 16px;margin-bottom:18px;display:flex;align-items:center;gap:12px;font-size:13px;color:#5DCAA5}
+.builder-layout{display:grid;grid-template-columns:1fr 1fr;gap:16px;height:500px}
+.prompt-panel{background:#12121a;border:1px solid #ffffff14;border-radius:12px;display:flex;flex-direction:column;overflow:hidden}
+.preview-panel{background:#1a1a26;border:1px solid #ffffff14;border-radius:12px;display:flex;flex-direction:column;overflow:hidden}
+.panel-header{padding:12px 16px;border-bottom:1px solid #ffffff14;font-size:12px;color:#9090b0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.chat-area{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:85%;padding:10px 13px;border-radius:10px;font-size:13px;line-height:1.6}
+.msg-user{background:#534AB7;color:#fff;align-self:flex-end}
+.msg-ai{background:#1a1a26;color:#f0f0f8;align-self:flex-start;border:1px solid #ffffff14}
+.input-row{padding:12px;border-top:1px solid #ffffff14;display:flex;gap:8px;flex-shrink:0}
+.input-row textarea{flex:1;background:#1a1a26;border:1px solid #ffffff22;border-radius:8px;padding:9px 12px;font-size:13px;color:#f0f0f8;font-family:system-ui,sans-serif;resize:none;outline:none;height:40px}
+.send-btn{background:#534AB7;color:#fff;border:none;border-radius:8px;width:40px;height:40px;cursor:pointer;font-size:18px;flex-shrink:0}
+.preview-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#5a5a7a;font-size:13px}
+.preview-rendered{flex:1;background:#fff;overflow:hidden}
+.preview-rendered iframe{width:100%;height:100%;border:none}
+.preview-code{flex:1;overflow:auto;padding:14px}
+.preview-code pre{font-family:monospace;font-size:11px;line-height:1.7;color:#a594ff;white-space:pre-wrap;word-break:break-word}
+.api-warning{background:#BA751718;border:1px solid #BA751740;border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:#EF9F27;display:flex;gap:10px}
+.settings-row{background:#12121a;border:1px solid #ffffff14;border-radius:10px;overflow:hidden}
+.settings-item{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #ffffff14}
+.settings-item:last-child{border-bottom:none}
+.settings-label-sm{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#5a5a7a;margin-bottom:12px}
+.key-input{background:#1a1a26;border:1px solid #ffffff22;border-radius:6px;padding:7px 10px;font-size:12px;color:#f0f0f8;font-family:monospace;width:260px;outline:none}
+.save-key-btn{background:#1D9E75;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;cursor:pointer;margin-left:8px}
+.apps-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.app-card{background:#12121a;border:1px solid #ffffff14;border-radius:12px;padding:16px;cursor:pointer;transition:all .15s}
+.app-card:hover{border-color:#ffffff22;transform:translateY(-1px)}
+.app-card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px}
+.app-card-name{font-size:14px;font-weight:500;margin-bottom:4px}
+.app-card-date{font-size:11px;color:#5a5a7a}
+.app-card-actions{display:flex;gap:6px;margin-top:12px}
+.app-card-btn{flex:1;padding:6px 0;border-radius:6px;font-size:11px;border:1px solid #ffffff22;background:transparent;color:#9090b0;cursor:pointer}
+.app-card-btn:hover{background:#1a1a26;color:#f0f0f8}
+.clone-box{background:#534AB718;border:1px solid #7c6ef740;border-radius:12px;padding:20px;margin-top:20px}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.stat-card{background:#12121a;border:1px solid #ffffff14;border-radius:10px;padding:14px 16px}
+.stat-val{font-size:24px;font-weight:500}
+.stat-lbl{font-size:11px;color:#5a5a7a;margin-top:5px;text-transform:uppercase}
+.perm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.perm-item{background:#1a1a26;border:1px solid #ffffff14;border-radius:8px;padding:10px 14px;font-size:12px;color:#9090b0;display:flex;align-items:center;gap:8px}
+.dot{width:7px;height:7px;border-radius:50%;background:#5DCAA5;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.status-dot{width:7px;height:7px;border-radius:50%;background:#5DCAA5;display:inline-block;margin-right:5px;animation:pulse 2s infinite}
+</style>
+</head>
+<body>
+  <div class="app">
+  <div class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">Builder<span>AI</span></div>
+      <div class="logo-sub">App Factory</div>
+    </div>
+    <nav class="nav">
+      <button class="nav-item active" onclick="switchPanel('builder',this)">⚡ Build an App</button>
+      <button class="nav-item" onclick="switchPanel('library',this)">📱 My Apps</button>
+      <button class="nav-item" onclick="switchPanel('templates',this)">📋 Templates</button>
+      <button class="nav-item" onclick="switchPanel('admin',this)">🛡️ Admin Panel</button>
+      <button class="nav-item" onclick="switchPanel('settings',this)">⚙️ Settings</button>
+    </nav>
+    <div class="profile-box">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="avatar">MC</div>
+        <div style="min-width:0">
+          <div style="font-size:12px;font-weight:500">Matthew C.</div>
+          <div style="font-size:10px;color:#5a5a7a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px">matthewecampbell007@gmail.com</div>
+          <div style="display:flex;gap:3px;margin-top:3px">
+            <span class="badge-prem">Premium</span>
+            <span class="badge-unlim">Unlimited</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div style="font-size:16px;font-weight:500" id="topbar-title">Build an App</div>
+        <div style="font-size:12px;color:#5a5a7a;margin-top:1px"><span class="status-dot"></span>AI engine ready · Admin account</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="switchPanel('settings',document.querySelectorAll('.nav-item')[4])">🔑 API Key</button>
+        <button class="btn btn-primary" onclick="newApp()">+ New App</button>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="panel active" id="panel-builder">
+        <div id="api-warn" class="api-warning">
+          ⚠️ <div><strong>Add your Anthropic API key to activate AI.</strong> Go to Settings, paste your key from console.anthropic.com and save it.</div>
+        </div>
+        <div class="unlim-banner">
+          ∞ <div><strong>Unlimited access active.</strong> Your admin account has no generation limits, no rate caps, and full bypass on all plan restrictions.</div>
+        </div>
+        <div class="builder-layout">
+          <div class="prompt-panel">
+            <div class="panel-header">
+              <span>💬 Describe your app</span>
+              <span style="color:#5DCAA5;font-size:11px">∞ No limit</span>
+            </div>
+            <div class="chat-area" id="chatArea">
+              <div class="msg msg-ai">👋 Hi Matthew! You have unlimited access. Tell me what app you want to build — no restrictions.</div>
+            </div>
+            <div class="input-row">
+              <textarea id="promptInput" placeholder="Describe the app you want to build..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"></textarea>
+              <button class="send-btn" onclick="sendMsg()">➤</button>
+            </div>
+          </div>
+          <div class="preview-panel">
+            <div class="panel-header">
+              <span>👁️ Preview</span>
+              <div style="display:flex;gap:6px">
+                <button class="btn btn-ghost" style="padding:4px 10px;font-size:11px" onclick="toggleView()" id="viewBtn">Code</button>
+                <button class="btn btn-ghost" style="padding:4px 10px;font-size:11px" onclick="downloadApp()">⬇ Export</button>
+              </div>
+            </div>
+            <div id="previewEmpty" class="preview-empty">
+              <div style="font-size:32px;opacity:.3">🪄</div>
+              <p>Your generated app will appear here</p>
+            </div>
+            <div id="previewCode" class="preview-code" style="display:none"><pre id="codeContent"></pre></div>
+            <div id="previewRendered" class="preview-rendered" style="display:none">
+              <iframe id="appFrame"></iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-library">
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-val" id="appCount">3</div><div class="stat-lbl">Apps Created</div></div>
+          <div class="stat-card"><div class="stat-val" style="color:#5DCAA5">∞</div><div class="stat-lbl">Monthly Limit</div></div>
+          <div class="stat-card"><div class="stat-val" style="color:#a594ff">∞</div><div class="stat-lbl">Daily Limit</div></div>
+        </div>
+        <div class="apps-grid" id="appsGrid"></div>
+      </div>
+
+      <div class="panel" id="panel-templates">
+        <div style="display:flex;gap:4px;margin-bottom:16px" id="tabBar">
+          <button class="btn btn-ghost active-tab" onclick="filterTpl('all',this)" style="padding:6px 12px;font-size:12px">All</button>
+          <button class="btn btn-ghost" onclick="filterTpl('productivity',this)" style="padding:6px 12px;font-size:12px">Productivity</button>
+          <button class="btn btn-ghost" onclick="filterTpl('finance',this)" style="padding:6px 12px;font-size:12px">Finance</button>
+          <button class="btn btn-ghost" onclick="filterTpl('social',this)" style="padding:6px 12px;font-size:12px">Social</button>
+        </div>
+        <div class="apps-grid" id="templatesGrid"></div>
+      </div>
+
+      <div class="panel" id="panel-admin">
+        <div class="unlim-banner">🛡️ <div><strong>Admin confirmed.</strong> matthewecampbell007@gmail.com — all limits permanently bypassed.</div></div>
+        <div class="settings-label-sm" style="margin-top:16px">Admin Privileges</div>
+        <div class="perm-grid">
+          <div class="perm-item"><span class="dot"></span>Unlimited app generation</div>
+          <div class="perm-item"><span class="dot"></span>No daily rate cap</div>
+          <div class="perm-item"><span class="dot"></span>No monthly quota</div>
+          <div class="perm-item"><span class="dot"></span>Billing exempt</div>
+          <div class="perm-item"><span class="dot"></span>Manage all users</div>
+          <div class="perm-item"><span class="dot"></span>Clone and redeploy</div>
+          <div class="perm-item"><span class="dot"></span>Override plan limits</div>
+          <div class="perm-item"><span class="dot"></span>Full system access</div>
+        </div>
+        <div class="clone-box">
+          <div style="font-size:15px;font-weight:500;margin-bottom:6px">📦 Clone this Builder</div>
+          <div style="font-size:12px;color:#9090b0;line-height:1.7;margin-bottom:14px">Generate a full copy of BuilderAI with your email pre-seeded as admin with unlimited access.</div>
+          <button class="btn btn-primary" onclick="cloneBuilder()">⬇ Generate Clone</button>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-settings">
+        <div class="settings-label-sm">Account</div>
+        <div class="settings-row" style="margin-bottom:24px">
+          <div class="settings-item">
+            <div style="font-size:13px;font-weight:500">Email</div>
+            <div style="font-size:12px;color:#9090b0;font-family:monospace">matthewecampbell007@gmail.com</div>
+          </div>
+          <div class="settings-item">
+            <div style="font-size:13px;font-weight:500">Role</div>
+            <div style="display:flex;gap:4px"><span class="badge-prem">Premium</span><span class="badge-unlim">Unlimited</span></div>
+          </div>
+          <div class="settings-item">
+            <div><div style="font-size:13px;font-weight:500">Apps Generated</div><div style="font-size:11px;color:#5a5a7a">No limit — admin bypass active</div></div>
+            <div style="font-size:12px;color:#5DCAA5">∞ / ∞</div>
+          </div>
+          <div class="settings-item">
+            <div><div style="font-size:13px;font-weight:500">Rate Limit</div><div style="font-size:11px;color:#5a5a7a">Bypassed for admin</div></div>
+            <div style="font-size:12px;color:#5DCAA5">None</div>
+          </div>
+        </div>
+        <div class="settings-label-sm">API Key</div>
+        <div class="settings-row">
+          <div class="settings-item" style="flex-direction:column;align-items:flex-start;gap:10px">
+            <div>
+              <div style="font-size:13px;font-weight:500">Anthropic API Key</div>
+              <div style="font-size:11px;color:#5a5a7a">Get yours at console.anthropic.com → API Keys</div>
+            </div>
+            <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px">
+              <input class="key-input" type="password" id="apiKeyInput" placeholder="sk-ant-...">
+              <button class="save-key-btn" onclick="saveKey()">Save Key</button>
+              <span id="keySaved" style="font-size:12px;color:#5DCAA5;display:none">✓ Saved!</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+   
+   </div>
+  </div>
+</div>
+<script>
+const ADMIN={email:'matthewecampbell007@gmail.com',unlimited:true,rateLimit:false,monthlyCap:Infinity,dailyCap:Infinity,billingExempt:true};
+let apiKey='';
+let currentView='rendered';
+let generatedCode='';
+let apps=[
+  {id:1,name:'Todo List App',icon:'📋',color:'#534AB720',date:'May 12, 2026'},
+  {id:2,name:'Budget Tracker',icon:'💰',color:'#1D9E7520',date:'May 10, 2026'},
+  {id:3,name:'Weather Dashboard',icon:'🌤️',color:'#BA751720',date:'May 8, 2026'}
+];
+let allTpl=[
+  {name:'To-Do List',icon:'✅',color:'#534AB720',cat:'productivity',desc:'Task manager with categories'},
+  {name:'Budget Tracker',icon:'💰',color:'#1D9E7520',cat:'finance',desc:'Track income and expenses'},
+  {name:'Habit Tracker',icon:'🔥',color:'#E24B4A20',cat:'productivity',desc:'Daily habit streaks'},
+  {name:'Invoice Generator',icon:'🧾',color:'#BA751720',cat:'finance',desc:'Create professional invoices'},
+  {name:'Note Taking App',icon:'📝',color:'#185FA520',cat:'productivity',desc:'Rich text notes with tags'},
+  {name:'Expense Splitter',icon:'🤝',color:'#3B6D1120',cat:'finance',desc:'Split bills among groups'},
+  {name:'Social Feed',icon:'📱',color:'#D4537E20',cat:'social',desc:'Post feed with likes'},
+  {name:'Chat App',icon:'💬',color:'#534AB720',cat:'social',desc:'Real-time messaging UI'},
+  {name:'Event Planner',icon:'📅',color:'#1D9E7520',cat:'productivity',desc:'Plan and RSVP to events'},
+  {name:'Recipe Book',icon:'🍳',color:'#BA751720',cat:'social',desc:'Save and share recipes'}
+];
+
+function switchPanel(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  if(btn)btn.classList.add('active');
+  const t={builder:'Build an App',library:'My Apps',templates:'Templates',admin:'Admin Panel',settings:'Settings'};
+  document.getElementById('topbar-title').textContent=t[id];
+  if(id==='library')renderApps();
+  if(id==='templates')renderTpl('all');
+}
+
+function renderApps(){
+  document.getElementById('appCount').textContent=apps.length;
+  document.getElementById('appsGrid').innerHTML=apps.map(a=>`
+    <div class="app-card">
+      <div class="app-card-icon" style="background:${a.color}">${a.icon}</div>
+      <div class="app-card-name">${a.name}</div>
+      <div class="app-card-date">Created ${a.date}</div>
+      <div class="app-card-actions">
+        <button class="app-card-btn">Open</button>
+        <button class="app-card-btn" onclick="delApp(${a.id})">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+function delApp(id){apps=apps.filter(x=>x.id!==id);renderApps();}
+
+function renderTpl(cat){
+  const f=cat==='all'?allTpl:allTpl.filter(t=>t.cat===cat);
+  document.getElementById('templatesGrid').innerHTML=f.map(t=>`
+    <div class="app-card" onclick="useTpl('${t.name}')">
+      <div class="app-card-icon" style="background:${t.color}">${t.icon}</div>
+      <div class="app-card-name">${t.name}</div>
+      <div class="app-card-date" style="color:#9090b0;font-size:12px;margin-top:4px">${t.desc}</div>
+      <div class="app-card-actions"><button class="app-card-btn">Use Template</button></div>
+    </div>`).join('');
+}
+
+function filterTpl(cat,btn){renderTpl(cat);}
+
+function useTpl(name){
+  switchPanel('builder',document.querySelectorAll('.nav-item')[0]);
+  document.getElementById('promptInput').value='Build me a '+name.toLowerCase();
+  sendMsg();
+}
+
+function newApp(){
+  switchPanel('builder',document.querySelectorAll('.nav-item')[0]);
+  document.getElementById('chatArea').innerHTML='<div class="msg msg-ai">👋 Ready to build, Matthew. What app do you want? No limits on your account.</div>';
+  document.getElementById('previewEmpty').style.display='flex';
+  document.getElementById('previewCode').style.display='none';
+  document.getElementById('previewRendered').style.display='none';
+  generatedCode='';
+}
+
+function addMsg(role,text){
+  const area=document.getElementById('chatArea');
+  const div=document.createElement('div');
+  div.className=role==='user'?'msg msg-user':'msg msg-ai';
+  div.innerHTML=text;
+  area.appendChild(div);
+  area.scrollTop=area.scrollHeight;
+  return div;
+}
+
+async function sendMsg(){
+  const inp=document.getElementById('promptInput');
+  const prompt=inp.value.trim();
+  if(!prompt)return;
+  inp.value='';
+  addMsg('user',prompt);
+  if(!apiKey){addMsg('ai','⚠️ Please add your Anthropic API key in Settings first.');return;}
+  const td=addMsg('ai','Generating your app...');
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:4000,
+        system:'You are an expert web developer. Generate a complete, beautiful, working single-file HTML app. Return ONLY raw HTML with inline CSS and JS. Modern dark theme: bg #0a0a0f, accent #7c6ef7. No markdown, no backticks, no explanation.',
+        messages:[{role:'user',content:'Build this app: '+prompt}]
+      })
+    });
+    const d=await r.json();
+    if(d.error){td.innerHTML='❌ Error: '+d.error.message;return;}
+    generatedCode=d.content[0].text.replace(/```html\n?/g,'').replace(/```\n?/g,'').trim();
+    td.innerHTML='✅ App generated! See preview on the right.';
+    showPreview(generatedCode);
+    const n=prompt.replace(/^build\s*(me\s*)?a?\s*/i,'').trim();
+    apps.unshift({id:Date.now(),name:n.charAt(0).toUpperCase()+n.slice(1)||'New App',icon:'⚡',color:'#534AB720',date:'Today'});
+    setTimeout(()=>addMsg('ai','🎉 Done! Export it or ask me to change anything.'),400);
+  }catch(e){
+    td.innerHTML='❌ Error: '+e.message;
+  }
+}
+
+function showPreview(code){
+  document.getElementById('previewEmpty').style.display='none';
+  if(currentView==='code'){
+    document.getElementById('previewCode').style.display='flex';
+    document.getElementById('previewRendered').style.display='none';
+    document.getElementById('codeContent').textContent=code;
+  }else{
+    document.getElementById('previewCode').style.display='none';
+    document.getElementById('previewRendered').style.display='block';
+    document.getElementById('appFrame').srcdoc=code;
+  }
+}
+
+function toggleView(){
+  if(!generatedCode)return;
+  const btn=document.getElementById('viewBtn');
+  if(currentView==='rendered'){
+    currentView='code';btn.textContent='Preview';
+    document.getElementById('previewRendered').style.display='none';
+    document.getElementById('previewCode').style.display='flex';
+    document.getElementById('codeContent').textContent=generatedCode;
+  }else{
+    currentView='rendered';btn.textContent='Code';
+    document.getElementById('previewCode').style.display='none';
+    document.getElementById('previewRendered').style.display='block';
+    document.getElementById('appFrame').srcdoc=generatedCode;
+  }
+}
+
+function downloadApp(){
+  if(!generatedCode){alert('Generate an app first!');return;}
+  const b=new Blob([generatedCode],{type:'text/html'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(b);a.download='my-app.html';a.click();
+}
+
+function saveKey(){
+  const v=document.getElementById('apiKeyInput').value.trim();
+  if(!v){alert('Please enter an API key');return;}
+  apiKey=v;
+  document.getElementById('keySaved').style.display='inline';
+  document.getElementById('api-warn').style.display='none';
+  setTimeout(()=>document.getElementById('keySaved').style.display='none',3000);
+}
+
+function cloneBuilder(){
+  const b=new Blob([document.documentElement.outerHTML],{type:'text/html'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(b);a.download='builderai-clone.html';a.click();
+  alert('✅ Clone downloaded! Open it in any browser or host it anywhere.');
+}
+</script>
+</body>
+</html>
